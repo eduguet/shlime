@@ -43,7 +43,7 @@ def load_and_preprocess_compas_data(file_path='compas-scores-raw.csv'):
 # Step 1: Train a classifier
 def train_classifier(X_train, y_train):
     model = RandomForestClassifier()
-    model.fit(X_train, y_train)
+    model.fit(X_train.values, y_train.values)
     return model
 
 # Step 2: Generate explanations using LIME and SHAP
@@ -90,6 +90,7 @@ if __name__ == "__main__":
     X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.3, random_state=42)
     X_train_df = pd.DataFrame(X_train, columns=X.columns)
     X_test_df = pd.DataFrame(X_test, columns=X.columns)
+
 
     model = train_classifier(X_train_df, y_train)
     
