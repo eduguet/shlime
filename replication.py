@@ -38,7 +38,7 @@ def load_and_preprocess_compas_data(file_path='compas-scores-raw.csv'):
     compas_recid = compas_recid[features + ['Risk']]
     compas_recid = pd.get_dummies(compas_recid, columns=['Sex_Code_Text', 'Ethnic_Code_Text', 'MaritalStatus'], drop_first=True)
     
-    return compas_recid
+    return compas_recid.head(1000)
 
 # Step 1: Train a classifier
 def train_classifier(X_train, y_train):
@@ -62,7 +62,7 @@ def generate_shap_explanations(model, X_test):
     return shap_values
 
 # Helper function to calculate sensitivity
-def calculate_sensitivity(explanations, sensitive_feature):
+def calculate_sensitivity(explanations, sensitive_feature, type):
     explanations_with_sensitive_feature_top = 0
     for explanation in explanations:
         if isinstance(explanation, list):  # for SHAP values
@@ -70,8 +70,12 @@ def calculate_sensitivity(explanations, sensitive_feature):
             if sensitive_feature in top_features:
                 explanations_with_sensitive_feature_top += 1
         else:  # for LIME explanations
-            if sensitive_feature in [feat[0] for feat in explanation.as_list()]:
-                explanations_with_sensitive_feature_top += 1
+            if type == 'l':
+                if sensitive_feature in [feat[0] for feat in explanation.as_list()]:
+                    explanations_with_sensitive_feature_top += 1
+            elif type == 's':
+                if sensitive_feature in [feat[0] for feat in explanation.tolist()]:
+                    explanations_with_sensitive_feature_top += 1
     
     return explanations_with_sensitive_feature_top / len(explanations)
 
@@ -97,11 +101,14 @@ if __name__ == "__main__":
     # Generate explanations
     lime_explanations = generate_lime_explanations(model, X_test_df)
     shap_explanations = generate_shap_explanations(model, X_test_df)
+    
+    print(type(lime_explanations[0]))
+    print(type(shap_explanations[0]))
 
     # Sensitivity analysis
     sensitive_feature = 'Ethnic_Code_Text_African-American'
-    lime_sensitivity = calculate_sensitivity(lime_explanations, sensitive_feature)
-    shap_sensitivity = calculate_sensitivity(shap_explanations, sensitive_feature)
+    lime_sensitivity = calculate_sensitivity(lime_explanations, sensitive_feature, 'l')
+    shap_sensitivity = calculate_sensitivity(shap_explanations, sensitive_feature, 's')
     
     # Placeholder for OOD evaluation
     f1_scores = np.linspace(0, 1, 10)  # Placeholder for actual F1 scores, to be computed
