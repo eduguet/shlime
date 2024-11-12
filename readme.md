@@ -1,3 +1,5 @@
+## SHLIME Addition: In order to run, depreciate ipywidgets to 7.4.2 in terminal then run ##
+
 # Fooling LIME and SHAP: Adversarial Attacks on Post hoc Explanation Methods
 
 This is the code for our paper, "Fooling LIME and SHAP: Adversarial Attacks on Post hoc Explanation Methods."
