@@ -4,7 +4,7 @@ The experiment MAIN for COMPAS.
  * This may take some time because we iterate through every instance in the test set for
    both LIME and SHAP explanations take some time to compute
  * The print outs can be interpreted as maps from the RANK to the rate at which the feature occurs in the rank.. e.g:
- 	    1: [('length_of_stay', 0.002592352559948153), ('unrelated_column_one', 0.9974076474400518)]
+         1: [('length_of_stay', 0.002592352559948153), ('unrelated_column_one', 0.9974076474400518)]
    can be read as the first unrelated column occurs ~100% of the time in as the most important feature
  * "Nothing shown" refers to SHAP yielding only 0 shapley values 
 """
@@ -76,46 +76,88 @@ class innocuous_model_psi:
 ##
 ###
 
-def experiment_main():
-	"""
-	Run through experiments for LIME/SHAP on compas using both one and two unrelated features.
-	* This may take some time given that we iterate through every point in the test set
-	* We print out the rate at which features occur in the top three features
-	"""
+# ensemble_function EXAMPLE
+def ensemble_mult(xtrain, ytrain):
+    adv_lime = Adversarial_Lime_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, 
+                                                                                     ytrain, 
+                                                                                     categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'), features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], feature_names=features, perturbation_multiplier=30)
+    adv_explainer = lime.lime_tabular.LimeTabularExplainer(xtrain, 
+                                                           sample_around_instance=True, 
+                                                           feature_names=adv_lime.get_column_names(), 
+                                                           categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'),features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], 
+                                                           discretize_continuous=False)
+    lime_explanations = []
+    for i in range(xtest.shape[0]):
+        lime_explanations.append(adv_explainer.explain_instance(xtest[i], adv_lime.predict_proba).as_list())
 
-	xtrain,xtest,ytrain,ytest = train_test_split(X,y,test_size=0.1)
-	ss = StandardScaler().fit(xtrain)
-	xtrain = ss.transform(xtrain)
-	xtest = ss.transform(xtest)
+    # Train adversarial model for SHAP 
+    background_distribution = shap.kmeans(xtrain,10)
+    adv_shap = Adversarial_Kernel_SHAP_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, ytrain, feature_names=features)
+    adv_kerenel_explainer = shap.KernelExplainer(adv_shap.predict, background_distribution)
+    shap_explanations = adv_kerenel_explainer.shap_values(xtest)
+
+    return lime_explanations*shap_explanations
+    
+
+def experiment_main(ensemble_function):
+    """
+    Run through experiments for LIME/SHAP on compas using both one and two unrelated features.
+    * This may take some time given that we iterate through every point in the test set
+    * We print out the rate at which features occur in the top three features
+    """
+
+    xtrain,xtest,ytrain,ytest = train_test_split(X,y,test_size=0.1)
+    ss = StandardScaler().fit(xtrain)
+    xtrain = ss.transform(xtrain)
+    xtest = ss.transform(xtest)
 
     # ------------------  SHLIME EXPERIEMENTS SETUP ------------------ #
-	
-    print ('---------------------')
-    print ("Beginning SHLIME COMPAS Experiments....")
-	print ('---------------------')
+    print('---------------------')
+    print("Beginning SHLIME COMPAS Experiments....")
+    print('---------------------')
 
     # Generate LIME and SHAP perturbations seperately
 
     # Train the adversarial model for LIME with f and psi 
-	adv_lime = Adversarial_Lime_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, ytrain, categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'), features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], feature_names=features, perturbation_multiplier=30)
-	adv_explainer = lime.lime_tabular.LimeTabularExplainer(xtrain, sample_around_instance=True, feature_names=adv_lime.get_column_names(), categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'),features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], discretize_continuous=False)
+    adv_lime = Adversarial_Lime_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, 
+                                                                                     ytrain, 
+                                                                                     categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'), features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], feature_names=features, perturbation_multiplier=30)
+    adv_explainer = lime.lime_tabular.LimeTabularExplainer(xtrain, 
+                                                           sample_around_instance=True, 
+                                                           feature_names=adv_lime.get_column_names(), 
+                                                           categorical_features=[features.index('unrelated_column_one'),features.index('unrelated_column_two'),features.index('c_charge_degree_F'), features.index('c_charge_degree_M'), features.index('two_year_recid'), features.index('race'), features.index("sex_Male"), features.index("sex_Female")], 
+                                                           discretize_continuous=False)
                                                
-	lime_explanations = []
-	for i in range(xtest.shape[0]):
-		lime_explanations.append(adv_explainer.explain_instance(xtest[i], adv_lime.predict_proba).as_list())
+    lime_explanations = []
+    for i in range(xtest.shape[0]):
+        lime_explanations.append(adv_explainer.explain_instance(xtest[i], adv_lime.predict_proba).as_list())
 
     # Train adversarial model for SHAP 
     background_distribution = shap.kmeans(xtrain,10)
-	adv_shap = Adversarial_Kernel_SHAP_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, ytrain, feature_names=features)
-	adv_kerenel_explainer = shap.KernelExplainer(adv_shap.predict, background_distribution)
-	shap_explanations = adv_kerenel_explainer.shap_values(xtest)
+    adv_shap = Adversarial_Kernel_SHAP_Model(racist_model_f(), innocuous_model_psi()).train(xtrain, ytrain, feature_names=features)
+    adv_kerenel_explainer = shap.KernelExplainer(adv_shap.predict, background_distribution)
+    shap_explanations = adv_kerenel_explainer.shap_values(xtest)
 
     # TODO: Combine explanations by multiplying them?
 
+    # ensemble_explanations = ensemble_function(lime_explanations, shap_explanations)
+    # OR
+    # In this one, we would maybe be able to do more than just combine explanaitons
+    # ensemble_explanations = ensemble_function(adv_lime, adv_shap)
 
     # TODO: Display results
+    true_lime_explanation = []
+    for i in range(xtest.shape[0]):
+        true_lime_explanation.append(adv_explainer.explain_instance(xtest[i], racist_model_f.predict_proba).as_list())
+
+    biased_kerenel_explainer = shap.KernelExplainer(adv_shap.predict, background_distribution)
+    true_shap_explanations = biased_kerenel_explainer.shap_values(xtest)
+
+    true_ensemble = enemble_explanations(true_lime_explanation, true_shap_explanations)
     
+    # Compare (something like this)
+    error = np.linalg.norm(true_ensemble - ensemble_explanations)
 
 if __name__ == "__main__":
-	experiment_main()
+    experiment_main()
 
