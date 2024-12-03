@@ -9,7 +9,7 @@ from sklearn.metrics import f1_score, roc_auc_score, accuracy_score
 from matplotlib import pyplot as plt
 import seaborn as sns
 
-df = pd.read_csv('data/threshold_results_shap.csv', index_col=0)
+df = pd.read_csv('data/threshold_results_combined.csv', index_col=0)
 f1s, fsts, scnds, thrds = [], [], [], []
 
 for trial in np.unique(df['trial']):
@@ -40,5 +40,5 @@ plt.xlim(0,1)
 plt.xlabel("F1 score on OOD task")
 plt.ylabel("% explanations with race as first feature")
 
-sns.scatterplot(f1s, fsts, ax=ax)
-plt.savefig("shap_f1_first.png")
+sns.scatterplot(x=f1s, y=fsts, ax=ax)
+plt.savefig("comb_f1_first.png")

@@ -14,6 +14,10 @@ import lime.lime_tabular
 import shap
 from copy import deepcopy
 
+# Hugh sanity
+import warnings
+warnings.filterwarnings('ignore', category=DeprecationWarning)
+
 # Flip LIME flag to vary between lime shap
 LIME = False
 

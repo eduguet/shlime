@@ -9,6 +9,7 @@ images/
 
 data/threshold_results_lime.csv
 data/threshold_results_shap.csv
+data/threshold_results_combined.csv
 # C extensions
 *.so
 
