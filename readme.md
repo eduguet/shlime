@@ -1,5 +1,13 @@
-## SHLIME Addition: In order to run, depreciate ipywidgets to 7.4.2 in terminal then run ##
+# SHLIME: Foiling adversarial attacks fooling SHAP and LIME
+Developed by Sam Chauhan, Estelle Duguet, Karthik Ramakrishnan, Hugh Van Deventer, Jack Kruger, &
+Ranjan Subbaraman
 
+We seek to build on the previous analysis by the paper Fooling LIME and SHAP: Adversarial Attacks on Post hoc Explanation Methods (Slack
+et al., 2020), with the goal of developing a new robust framework for the analysis of adversarial networks to better detect implicit biases. This is the code for our paper, "Foiling adversarial attacks fooling SHAP and LIME"
+
+## SHLIME Requirements: In order to run, depreciate ipywidgets to 7.4.2 in terminal then run as directed below ##
+Any questions? Contact us:[csanjana@umich.edu](mailto:csanjana@umich.edu), [eduguet@umich.edu](mailto:eduguet@umich.edu), [kartikrk@umich.edu](mailto:kartikrk@umich.edu), [hughv@umich.edu](mailto:hughv@umich.edu), [jakrug@umich.edu](mailto:jakrug@umich.edu), & [ranjans@umich.edu](mailto:ranjans@umich.edu).
+# #
 # Fooling LIME and SHAP: Adversarial Attacks on Post hoc Explanation Methods
 
 This is the code for our paper, "Fooling LIME and SHAP: Adversarial Attacks on Post hoc Explanation Methods."
